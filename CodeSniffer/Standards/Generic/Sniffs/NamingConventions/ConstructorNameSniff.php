@@ -104,6 +104,16 @@ class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSnif
 
     }//end processTokenWithinScope()
 
+    /**
+     * Checks whether a __construct function is pressent
+     *
+     * @param PHP_CodeSniffer_File $phpcsFile The current file being scanned.
+     * @param int                  $stackPtr  The position of the current token
+     *                                        in the stack passed in $tokens.
+     * @param int                  $currScope A pointer to the start of the scope.
+     *
+     * @return bool
+     */
     protected function hasRegularCtor(PHP_CodeSniffer_File $file, $stackPtr, $currScope)
     {
         $tokens = $file->getTokens();
@@ -118,7 +128,7 @@ class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSnif
         }
 
         return false;
-    }
+    }//end hasRegularCtor
 
 }//end class
 
