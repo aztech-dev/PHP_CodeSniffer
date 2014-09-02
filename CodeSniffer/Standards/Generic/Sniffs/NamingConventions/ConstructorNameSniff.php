@@ -65,9 +65,13 @@ class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSnif
         $className  = $phpcsFile->getDeclarationName($currScope);
         $methodName = $phpcsFile->getDeclarationName($stackPtr);
 
-        if (strcasecmp($methodName, $className) === 0 && ! method_exists($className, '__construct')) {
-            $error = 'PHP4 style constructors are not allowed; use "__construct()" instead';
-            $phpcsFile->addError($error, $stackPtr, 'OldStyle');
+        if (strcasecmp($methodName, $className) === 0) {
+            $construct = $this->hasRegularCtor($phpcsFile, $stackPtr, $currScope);
+
+            if (! $construct) {
+                $error = 'PHP4 style constructors are not allowed; use "__construct()" instead';
+                $phpcsFile->addError($error, $stackPtr, 'OldStyle');
+            }
         } else if (strcasecmp($methodName, '__construct') !== 0) {
             // Not a constructor.
             return;
@@ -100,6 +104,21 @@ class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSnif
 
     }//end processTokenWithinScope()
 
+    protected function hasRegularCtor(PHP_CodeSniffer_File $file, $stackPtr, $currScope)
+    {
+        $tokens = $file->getTokens();
+        $functionPtr = 0;
+
+        while ($functionPtr = $file->findNext(T_FUNCTION, $functionPtr + 1)) {
+            $namePtr = $file->findNext(T_STRING, $functionPtr);
+
+            if (trim($tokens[$namePtr]['content']) == '__construct') {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
 }//end class
 
