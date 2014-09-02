@@ -120,8 +120,6 @@ class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSnif
         $functionPtr = $currScope;
         $scopeEndPtr = $tokens[$currScope]['scope_closer'];
 
-        var_dump($tokens[$stackPtr], $tokens[$currScope]);
-
         while ($functionPtr = $file->findNext(T_FUNCTION, $functionPtr + 1, $scopeEndPtr)) {
             $namePtr = $file->findNext(T_STRING, $functionPtr, $scopeEndPtr);
 
