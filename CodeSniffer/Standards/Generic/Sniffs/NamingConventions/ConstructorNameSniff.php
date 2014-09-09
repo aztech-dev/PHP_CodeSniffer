@@ -34,6 +34,9 @@ if (class_exists('PHP_CodeSniffer_Standards_AbstractScopeSniff', true) === false
 class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSniffer_Standards_AbstractScopeSniff
 {
 
+    private $currentClass = '';
+
+    private $functionList = array();
 
     /**
      * Constructs the test with the tokens it wishes to listen for.
@@ -63,12 +66,16 @@ class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSnif
         $currScope
     ) {
         $className  = $phpcsFile->getDeclarationName($currScope);
+
+        if ($className != $this->currentClass) {
+            $this->parseClassFunctions($phpcsFile, $currScope);
+            $this->currentClass = $className;
+        }
+
         $methodName = $phpcsFile->getDeclarationName($stackPtr);
 
         if (strcasecmp($methodName, $className) === 0) {
-            $construct = $this->hasRegularCtor($phpcsFile, $stackPtr, $currScope);
-
-            if (! $construct) {
+            if (! $this->hasRegularCtor()) {
                 $error = 'PHP4 style constructors are not allowed; use "__construct()" instead';
                 $phpcsFile->addError($error, $stackPtr, 'OldStyle');
             }
@@ -114,22 +121,26 @@ class Generic_Sniffs_NamingConventions_ConstructorNameSniff extends PHP_CodeSnif
      *
      * @return bool
      */
-    protected function hasRegularCtor(PHP_CodeSniffer_File $file, $stackPtr, $currScope)
+    protected function hasRegularCtor()
     {
+        return in_array('__construct', $this->functionList);
+    }
+
+    protected function parseClassFunctions(PHP_CodeSniffer_File $file, $currScope)
+    {
+        $this->functionList = array();
+
         $tokens = $file->getTokens();
-        $functionPtr = $currScope;
+        $functionPtr = $tokens[$currScope]['scope_opener'] - 1;
         $scopeEndPtr = $tokens[$currScope]['scope_closer'];
 
         while ($functionPtr = $file->findNext(T_FUNCTION, $functionPtr + 1, $scopeEndPtr)) {
             $namePtr = $file->findNext(T_STRING, $functionPtr, $scopeEndPtr);
+            $functionName = trim($tokens[$namePtr]['content']);
 
-            if (trim($tokens[$namePtr]['content']) == '__construct') {
-                return true;
-            }
+            $this->functionList[] = $functionName;
         }
-
-        return false;
-    }//end hasRegularCtor
+    }
 
 }//end class
 
